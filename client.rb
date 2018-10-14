@@ -1,4 +1,5 @@
 require 'socket'
+require 'pry'
 
 socket = TCPSocket.open( "localhost", 8080 )
 
@@ -7,6 +8,11 @@ connection_tread = Thread.new do
     begin
       message = $stdin.gets.chomp
       socket.puts message
+      if message.match?(/^ *!quit *$/)
+        puts "good bye"
+        socket.close
+        exit
+      end
     rescue IOError => e
       puts e
       socket.close
@@ -17,7 +23,15 @@ end
 
 dialog_thread = Thread.new do
   loop do
-    response = socket.gets.chomp
+    begin
+      response = socket.gets.chomp
+    rescue => error
+      if error.is_a? NoMethodError
+        puts "Server down"
+        socket.close
+        exit
+      end
+    end
     puts "#{response}"
 
     # if response =~ /quit session/
