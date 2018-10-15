@@ -1,5 +1,8 @@
 require 'socket'
 require 'pry'
+require 'csv'
+require 'json'
+require 'Base64'
 
 class Server
   def initialize
@@ -46,7 +49,7 @@ private
 
       connection.puts "File Format: "
       file_format = connection.gets.chomp.to_sym
-      if file_format.empty? || !file_format.match?(/JSON|CSV|XML/i)
+      if file_format.empty? || !file_format.match?(/JSON|CSV/i)
         file_format = "json"
       end
 
@@ -70,7 +73,7 @@ private
         message = connection.gets.chomp
       rescue => error
         @connection_name.delete(connection) if error.is_a? NoMethodError
-        puts "ERROR: #{@connection_name} deleted"
+        puts "ERROR: #{connection} deleted"
         return
       end
       next if message.empty?
@@ -147,6 +150,7 @@ private
     file = File.open("pending_messages/messages_#{name}.txt", "w")
     file.close
   end
+
   def save_conversation(name, message)
     name.gsub("\n", "")
     file = File.open("messages/messages_#{name}.txt", "a")
